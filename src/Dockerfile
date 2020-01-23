@@ -237,6 +237,9 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     fonts-dejavu \
     gfortran \
+    curl \
+ 	g++ \
+ 	make \
     gcc && \
     rm -rf /var/lib/apt/lists/*
 
@@ -318,6 +321,18 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends ffmpeg && \
     rm -rf /var/lib/apt/lists/*
 
+
+
+# Install nodejs
+RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
+RUN apt-get install -y nodejs 
+
+RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
+RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list
+RUN apt-get update && apt-get install yarn
+
+
+
 USER $NB_UID
 
 # Install Python 3 packages
@@ -385,8 +400,8 @@ RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" && \
 
 # Install Tensorflow
 RUN conda install --quiet --yes \
-    'tensorflow=1.13*' \
-    'keras=2.2*' && \
+    'tensorflow-gpu*' \
+    'keras' && \
     conda clean --all -f -y && \
     fix-permissions $CONDA_DIR && \
     fix-permissions /home/$NB_USER
@@ -407,7 +422,7 @@ RUN conda install --quiet --yes \
 # Install PyTorch
 RUN conda install -y -c pytorch \
     cudatoolkit=10.1 \
-    'pytorch=1.3.1' \
+    pytorch \
     torchvision && \
     conda clean --all -f -y && \
     fix-permissions $CONDA_DIR && \
@@ -416,6 +431,11 @@ RUN conda install -y -c pytorch \
 ############################################################################
 ############################ Useful packages ###############################
 ############################################################################
+
+# Install typescript and javascript kernels
+RUN npm i -g tslab
+RUN tslab install --python=python3
+
 
 # Update conda
 RUN conda update -n base conda -y
@@ -456,6 +476,7 @@ RUN jupyter labextension install @ijmbarr/jupyterlab_spellchecker
 
 # Copying config and fix permissions
 COPY jupyter_notebook_config.json /etc/jupyter/
+RUN fix-permissions $CONDA_DIR
 RUN fix-permissions /home/$NB_USER
 
 # Switch back to jovyan to avoid accidental container runs as root
