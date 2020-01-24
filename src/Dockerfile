@@ -324,7 +324,7 @@ RUN apt-get update && \
 
 
 # Install nodejs
-RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
+RUN curl -sL https://deb.nodesource.com/setup_13.x | sudo -E bash -
 RUN apt-get install -y nodejs 
 
 RUN curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add -
